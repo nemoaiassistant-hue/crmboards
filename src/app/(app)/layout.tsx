@@ -39,7 +39,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         .from("org_members")
         .select("org_id")
         .eq("user_id", authUser.id)
-        .eq("accepted_at", "not.null")
+        .not("accepted_at", "is", null)
         .single();
 
       if (membership) {
