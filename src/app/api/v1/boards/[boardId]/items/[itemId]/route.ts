@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getOrgId } from "@/lib/auth";
+import { getOrgId, getAllOrgIds } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 export async function PUT(
@@ -17,8 +17,7 @@ export async function PUT(
       .from("boards")
       .select("id")
       .eq("id", boardId)
-      .eq("org_id", orgId)
-      .single();
+            .single();
 
     if (!board) {
       return NextResponse.json({ error: "Board not found" }, { status: 404 });
@@ -62,8 +61,7 @@ export async function DELETE(
       .from("boards")
       .select("id")
       .eq("id", boardId)
-      .eq("org_id", orgId)
-      .single();
+            .single();
 
     if (!board) {
       return NextResponse.json({ error: "Board not found" }, { status: 404 });

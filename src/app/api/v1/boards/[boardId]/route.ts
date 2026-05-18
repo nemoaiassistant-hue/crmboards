@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getOrgId } from "@/lib/auth";
+import { getAllOrgIds } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     const { boardId } = await params;
-    const orgId = await getOrgId();
+    const orgIds = await getAllOrgIds();
     const supabase = await createClient();
 
     // Fetch board
@@ -16,7 +16,7 @@ export async function GET(
       .from("boards")
       .select("*")
       .eq("id", boardId)
-      .eq("org_id", orgId)
+      .in("org_id", orgIds)
       .single();
 
     if (boardError || !board) {
@@ -71,7 +71,7 @@ export async function PUT(
 ) {
   try {
     const { boardId } = await params;
-    const orgId = await getOrgId();
+    const orgIds = await getAllOrgIds();
     const supabase = await createClient();
     const body = await request.json();
 
@@ -80,7 +80,7 @@ export async function PUT(
       .from("boards")
       .select("id")
       .eq("id", boardId)
-      .eq("org_id", orgId)
+      .in("org_id", orgIds)
       .single();
 
     if (!existing) {
@@ -116,7 +116,7 @@ export async function DELETE(
 ) {
   try {
     const { boardId } = await params;
-    const orgId = await getOrgId();
+    const orgIds = await getAllOrgIds();
     const supabase = await createClient();
 
     // Verify ownership
@@ -124,7 +124,7 @@ export async function DELETE(
       .from("boards")
       .select("id")
       .eq("id", boardId)
-      .eq("org_id", orgId)
+      .in("org_id", orgIds)
       .single();
 
     if (!existing) {

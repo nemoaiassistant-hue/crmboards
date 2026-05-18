@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getOrgId } from "@/lib/auth";
+import { getAllOrgIds } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -8,7 +8,6 @@ export async function GET(
 ) {
   try {
     const { itemId } = await params;
-    const orgId = await getOrgId();
     const supabase = await createClient();
 
     // Verify item belongs to a board in this org
@@ -18,7 +17,7 @@ export async function GET(
       .eq("id", itemId)
       .single();
 
-    if (!item || (item.boards as unknown as { org_id: string }).org_id !== orgId) {
+    if (!item || !(await getAllOrgIds()).includes((item.boards as unknown as { org_id: string }).org_id)) {
       return NextResponse.json({ error: "Item not found" }, { status: 404 });
     }
 
@@ -45,7 +44,6 @@ export async function POST(
 ) {
   try {
     const { itemId } = await params;
-    const orgId = await getOrgId();
     const supabase = await createClient();
     const body = await request.json();
 
@@ -64,7 +62,7 @@ export async function POST(
       .eq("id", itemId)
       .single();
 
-    if (!item || (item.boards as unknown as { org_id: string }).org_id !== orgId) {
+    if (!item || !(await getAllOrgIds()).includes((item.boards as unknown as { org_id: string }).org_id)) {
       return NextResponse.json({ error: "Item not found" }, { status: 404 });
     }
 

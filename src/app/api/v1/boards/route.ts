@@ -1,10 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
-import { getOrgId } from "@/lib/auth";
+import { getOrgId, getAllOrgIds } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   try {
-    const orgId = await getOrgId();
+    const orgIds = await getAllOrgIds();
     const supabase = await createClient();
 
     const { searchParams } = new URL(request.url);
@@ -13,8 +13,7 @@ export async function GET(request: Request) {
     let query = supabase
       .from("boards")
       .select("*")
-      .eq("org_id", orgId)
-      .order("sort_order", { ascending: true });
+            .order("sort_order", { ascending: true });
 
     if (workspaceId) {
       query = query.eq("workspace_id", workspaceId);
@@ -35,7 +34,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const orgId = await getOrgId();
+    const orgIds = await getAllOrgIds();
     const supabase = await createClient();
     const body = await request.json();
 
@@ -55,12 +54,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify workspace belongs to this org
+    // Verify workspace belongs to one of user's orgs
     const { data: workspace } = await supabase
       .from("workspaces")
-      .select("id")
+      .select("id, org_id")
       .eq("id", workspace_id)
-      .eq("org_id", orgId)
+      .in("org_id", orgIds)
       .single();
 
     if (!workspace) {
@@ -84,7 +83,7 @@ export async function POST(request: Request) {
       .from("boards")
       .insert({
         workspace_id,
-        org_id: orgId,
+        org_id: workspace.org_id,
         name: name.trim(),
         description: description || null,
         board_type: board_type || "project",

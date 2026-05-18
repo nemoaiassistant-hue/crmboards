@@ -1,17 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
-import { getOrgId } from "@/lib/auth";
+import { getOrgId, getAllOrgIds } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const orgId = await getOrgId();
+    const orgIds = await getAllOrgIds();
     const supabase = await createClient();
 
     const { data: members, error } = await supabase
       .from("org_members")
       .select("user_id, users:id(id, name, email, avatar_url)")
-      .eq("org_id", orgId)
-      .eq("accepted_at", "not.null");
+            .eq("accepted_at", "not.null");
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
