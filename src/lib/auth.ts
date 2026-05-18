@@ -13,7 +13,7 @@ export async function getOrgId(): Promise<string> {
     .from("org_members")
     .select("org_id")
     .eq("user_id", user.id)
-    .eq("accepted_at", "not.null") // only accepted invitations
+    .not("accepted_at", "is", null)
     .single();
 
   if (!member) throw new Error("No organization");
