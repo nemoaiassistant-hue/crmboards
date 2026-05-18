@@ -82,12 +82,31 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     setMobileOpen(false);
   }, [pathname]);
 
-  // Build breadcrumb from pathname
+  // Build breadcrumb from pathname with board name lookup
   const buildBreadcrumb = () => {
     const segments = pathname.split("/").filter(Boolean);
+
+    // Build a flat map of board id -> name from workspaces
+    const boardNames: Record<string, string> = {};
+    workspaces.forEach((ws) => {
+      ws.boards?.forEach((b) => {
+        boardNames[b.id] = b.name;
+      });
+    });
+
+    const labelMap: Record<string, string> = {
+      dashboard: "Dashboard",
+      boards: "Boards",
+      login: "Login",
+      register: "Register",
+    };
+
     return segments.map((segment, index) => {
       const href = "/" + segments.slice(0, index + 1).join("/");
-      const label = segment.charAt(0).toUpperCase() + segment.slice(1);
+      const label =
+        boardNames[segment] ||
+        labelMap[segment] ||
+        segment.charAt(0).toUpperCase() + segment.slice(1);
       return { label, href };
     });
   };
