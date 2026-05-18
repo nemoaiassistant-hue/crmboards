@@ -25,13 +25,13 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
+    const supabase = createClient();
     // 1. Sign up with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
