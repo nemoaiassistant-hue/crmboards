@@ -1,16 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
-import { getOrgId } from "@/lib/auth";
+import { getOrgId, getAllOrgIds } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const orgId = await getOrgId();
+    const orgIds = await getAllOrgIds();
     const supabase = await createClient();
 
     const { data: workspaces, error } = await supabase
       .from("workspaces")
-      .select("*, boards(*)")
-      .eq("org_id", orgId)
+      .select("*, boards(*), organizations(id, name)")
+      .in("org_id", orgIds)
       .order("sort_order", { ascending: true });
 
     if (error) {

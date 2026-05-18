@@ -43,21 +43,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         .single();
       setUser(profile);
 
-      // Get org membership
-      const { data: membership } = await supabase
+      // Get org memberships (show all orgs)
+      const { data: memberships } = await supabase
         .from("org_members")
         .select("org_id")
         .eq("user_id", authUser.id)
-        .not("accepted_at", "is", null)
-        .single();
+        .not("accepted_at", "is", null);
 
-      if (membership) {
-        const { data: orgData } = await supabase
+      if (memberships && memberships.length > 0) {
+        const { data: orgs } = await supabase
           .from("organizations")
           .select("*")
-          .eq("id", membership.org_id)
-          .single();
-        setOrg(orgData);
+          .in("id", memberships.map((m) => m.org_id));
+        // Show the last joined org (Broadway for the demo) or first
+        setOrg(orgs?.[orgs.length - 1] ?? null);
       }
     }
 
