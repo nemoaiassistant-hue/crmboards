@@ -36,13 +36,17 @@ function CardFieldValue({ column, value }: { column: Column; value: unknown }) {
     case "status": {
       const labels: Array<{ label: string; color: string }> =
         column.settings?.labels ?? [];
-      const label = labels.find((l) => l.label === value);
+      // Value might be string or {label, color} object
+      const statusStr = value && typeof value === "object"
+        ? (value as Record<string, unknown>).label as string
+        : String(value);
+      const label = labels.find((l) => l.label === statusStr);
       return (
         <span
           className="inline-flex items-center rounded-sm px-2 py-0 text-[10px] font-medium text-white"
           style={{ backgroundColor: label?.color ?? "#c4c4c4" }}
         >
-          {String(value)}
+          {statusStr}
         </span>
       );
     }

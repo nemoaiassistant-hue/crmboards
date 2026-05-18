@@ -61,7 +61,14 @@ export function KanbanView({
 
     items.forEach((item) => {
       const val = item.values?.find((v) => v.column_id === selectedColumnId);
-      const statusLabel = (val?.value as string) ?? "";
+      const rawVal = val?.value;
+      // Value might be a string or {label, color} object
+      let statusLabel: string = "";
+      if (typeof rawVal === "string") {
+        statusLabel = rawVal;
+      } else if (rawVal && typeof rawVal === "object" && "label" in rawVal) {
+        statusLabel = String((rawVal as { label: string }).label);
+      }
       if (map[statusLabel]) {
         map[statusLabel].push(item);
       } else {

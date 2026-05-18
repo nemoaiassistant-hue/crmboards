@@ -17,6 +17,43 @@ interface CellRendererProps {
   onChange: (columnId: string, value: unknown) => void;
 }
 
+/** Extract a plain string from a value that might be {label, color} or just a string */
+function extractLabel(val: unknown): string | null {
+  if (val == null) return null;
+  if (typeof val === "string") return val;
+  if (typeof val === "object" && "label" in (val as Record<string, unknown>)) {
+    return (val as Record<string, unknown>).label as string;
+  }
+  return String(val);
+}
+
+/** Extract a timeline {start, end} from a value */
+function extractTimeline(val: unknown): { start: string; end: string } | null {
+  if (val == null) return null;
+  if (typeof val === "string") {
+    try {
+      const parsed = JSON.parse(val);
+      if (parsed.start && parsed.end) return parsed;
+    } catch { /* not json */ }
+    return null;
+  }
+  if (typeof val === "object") {
+    const obj = val as Record<string, unknown>;
+    if (obj.start && obj.end) return { start: String(obj.start), end: String(obj.end) };
+  }
+  return null;
+}
+
+/** Extract people array */
+function extractPeople(val: unknown): Array<{ id: string; name: string }> | null {
+  if (val == null) return null;
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string") {
+    try { return JSON.parse(val); } catch { return null; }
+  }
+  return null;
+}
+
 export function CellRenderer({ column, values, onChange }: CellRendererProps) {
   const itemValue = values.find((v) => v.column_id === column.id);
   const rawValue = itemValue?.value ?? null;
@@ -25,7 +62,7 @@ export function CellRenderer({ column, values, onChange }: CellRendererProps) {
     case "text":
       return (
         <TextCell
-          value={rawValue as string | null}
+          value={typeof rawValue === "string" ? rawValue : rawValue != null ? String(rawValue) : null}
           column={column}
           onChange={(v) => onChange(column.id, v)}
         />
@@ -33,7 +70,7 @@ export function CellRenderer({ column, values, onChange }: CellRendererProps) {
     case "number":
       return (
         <NumberCell
-          value={rawValue as number | null}
+          value={typeof rawValue === "number" ? rawValue : rawValue != null ? Number(rawValue) : null}
           column={column}
           onChange={(v) => onChange(column.id, v)}
         />
@@ -41,7 +78,7 @@ export function CellRenderer({ column, values, onChange }: CellRendererProps) {
     case "status":
       return (
         <StatusCell
-          value={rawValue as string | null}
+          value={extractLabel(rawValue)}
           column={column}
           onChange={(v) => onChange(column.id, v)}
         />
@@ -49,7 +86,7 @@ export function CellRenderer({ column, values, onChange }: CellRendererProps) {
     case "date":
       return (
         <DateCell
-          value={rawValue as string | null}
+          value={typeof rawValue === "string" ? rawValue : rawValue != null ? String(rawValue) : null}
           column={column}
           onChange={(v) => onChange(column.id, v)}
         />
@@ -57,7 +94,7 @@ export function CellRenderer({ column, values, onChange }: CellRendererProps) {
     case "people":
       return (
         <PeopleCell
-          value={rawValue as Array<{ id: string; name: string }> | null}
+          value={extractPeople(rawValue)}
           column={column}
           onChange={(v) => onChange(column.id, v)}
         />
@@ -65,7 +102,7 @@ export function CellRenderer({ column, values, onChange }: CellRendererProps) {
     case "tags":
       return (
         <TagsCell
-          value={rawValue as string[] | null}
+          value={Array.isArray(rawValue) ? rawValue : rawValue != null ? [String(rawValue)] : null}
           column={column}
           onChange={(v) => onChange(column.id, v)}
         />
@@ -81,7 +118,7 @@ export function CellRenderer({ column, values, onChange }: CellRendererProps) {
     case "timeline":
       return (
         <TimelineCell
-          value={rawValue as { start: string; end: string } | null}
+          value={extractTimeline(rawValue)}
           column={column}
           onChange={(v) => onChange(column.id, v)}
         />
@@ -97,7 +134,7 @@ export function CellRenderer({ column, values, onChange }: CellRendererProps) {
     default:
       return (
         <div className="px-2 text-xs text-muted-foreground">
-          {JSON.stringify(rawValue)}
+          {typeof rawValue === "object" ? JSON.stringify(rawValue) : String(rawValue ?? "")}
         </div>
       );
   }
