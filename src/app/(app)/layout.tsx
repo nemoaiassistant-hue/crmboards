@@ -2,15 +2,24 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Moon, Sun, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Sidebar } from "@/components/sidebar";
+import { useTheme } from "@/components/theme-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 import { createClient } from "@/lib/supabase/client";
 import type { Workspace, Organization, UserProfile } from "@/types/database";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [org, setOrg] = useState<Organization | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -96,6 +105,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   );
 
   return (
+    <ThemeProvider>
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Desktop sidebar */}
       <aside
@@ -152,11 +162,43 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </span>
             ))}
           </nav>
+
+          {/* Theme toggle */}
+          <div className="ml-auto">
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent transition-colors"
+              >
+                {theme === "dark" ? (
+                  <Moon className="h-4 w-4" />
+                ) : theme === "light" ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Monitor className="h-4 w-4" />
+                )}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setTheme("light")}>
+                  <Sun className="mr-2 h-4 w-4" />
+                  Light
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("dark")}>
+                  <Moon className="mr-2 h-4 w-4" />
+                  Dark
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("system")}>
+                  <Monitor className="mr-2 h-4 w-4" />
+                  System
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </header>
 
         {/* Main content */}
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>
+    </ThemeProvider>
   );
 }
